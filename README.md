@@ -36,14 +36,14 @@ This is a **Number Classification API** built using **Flask** and deployed to a 
 ---
 
 ## API Endpoint
-### **GET `/api/classify-number/<number>`**
+### **GET `/api/classify-number`**
 Classifies a number and returns its properties.
 
 #### Parameters
-- **`<number>`**: The number to classify. Must be a valid integer.
+- **`number`**: The number to classify. Must be a valid integer.
 
 #### Example Request
-GET /api/classify-number/42
+GET /api/classify-number?number=42
 
 #### Example Response (200 OK)
 ```json
@@ -103,7 +103,7 @@ Access the API:
 Open your browser or use a tool like Postman to access:
 
 ```bash
-http://localhost:5000/api/classify-number/42
+http://127.0.0.1:5000/api/classify-number?number=42
 ```
 ## Deployment
 The API can be deployed to any platform that supports Python applications. Here are some options:
