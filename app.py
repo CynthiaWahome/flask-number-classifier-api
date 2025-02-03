@@ -35,42 +35,39 @@ def  get_fun_fact(n):
     except:
         return "No fun fact found imagine that!"
 
-@app.route('/api/classify-number/<int:number>', methods=['GET'])
+@app.route('/api/classify-number/<number>', methods=['GET'])
 def classify_number(number):
-    if not isinstance(number, int):
-        return jsonify({"number": number, "error": True}), 400
+    try:
+        number = int(number)
+    except ValueError:
+        return jsonify({
+            "error": True,
+            "message": "Invalid input. Please provide an integer.",
+            "instruction": "To classify a number, provide an integer value in the URL, e.g., /api/classify-number/42 "
+        }), 400
+    try:
+        properties = []
+        if is_armstrong(number):
+            properties.append("armstrong")
+        properties.append("odd" if number % 2 != 0 else "even")
 
-    properties = []
-    if is_armstrong(number):
-        properties.append("armstrong")
-    properties.append("odd" if number % 2 != 0 else "even")
+        response = {
+            "number": number,
+            "is_prime": is_prime(number),
+            "is_perfect": is_perfect(number),
+            "properties": properties,
+            "digit_sum": digit_sum(number),
+            "fun_fact": get_fun_fact(number),
+            "instruction": "Replace 'number' in the URL with a valid integer e.g. /api/classify-number/42"
+        }
 
-    response = {
-        "number": number,
-        "is_prime": is_prime(number),
-        "is_perfect": is_perfect(number),
-        "properties": properties,
-        "digit_sum": digit_sum(number),
-        "fun_fact": get_fun_fact(number)
-    }
-
-    return jsonify(response)
-
-    properties = []
-    if is_armstrong(number):
-        properties.append("armstrong")
-    properties.append("odd" if number % 2 != 0 else "even")
-
-    response = {
-        "number": number,
-        "is_prime": is_prime(number),
-        "is_perfect": is_perfect(number),
-        "properties": properties,
-        "digit_sum": digit_sum(number),
-        "fun_fact": get_fun_fact(number)
-    }
-
-    return jsonify(response)
+        return jsonify(response)
+    except Exception as e:
+        return jsonify({
+            "error": True,
+            "message": str(e),
+            "instruction": "To classify another number, replace the value of the 'number' parameter in the URL, e.g., /api/classify-number?number=42"
+        }), 500
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
