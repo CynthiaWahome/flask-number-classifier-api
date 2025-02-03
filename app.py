@@ -41,6 +41,7 @@ def classify_number(number):
         number = int(number)
     except ValueError:
         return jsonify({
+            "number": "alphabet",
             "error": True,
             "message": "Invalid input. Please provide an integer.",
             "instruction": "To classify a number, provide an integer value in the URL, e.g., /api/classify-number/42 "
@@ -68,6 +69,14 @@ def classify_number(number):
             "message": str(e),
             "instruction": "To classify another number, replace the value of the 'number' parameter in the URL, e.g., /api/classify-number?number=42"
         }), 500
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return jsonify({
+        "error": True,
+        "message": "Resource not found",
+        "instruction": "Check the URL and try again."
+    }), 404
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
