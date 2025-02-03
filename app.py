@@ -8,11 +8,11 @@ from flask_cors import CORS
 load_dotenv()
 
 # Define constants for error messages, success messages, and instructions
-ERROR_INVALID_INPUT = "Invalid input. Please provide an integer."
+ERROR_INVALID_INPUT = "Invalid input. Please provide a number."
 ERROR_INVALID_NUMBER = "The number you provided is not valid."
-ERROR_INVALID_RANGE = "The number is too large or negative. Please provide a valid integer."
+ERROR_INVALID_RANGE = "The number is too large or negative. Please provide a valid integer or float."
 SUCCESS_MESSAGE = "Number classified successfully."
-INSTRUCTION = "To classify a number, provide an integer value in the URL, e.g., /api/classify-number?number=42"
+INSTRUCTION = "To classify a number, provide a number value in the URL, e.g., /api/classify-number?number=42"
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -28,21 +28,24 @@ def is_prime(n):
     return True
 
 def is_perfect(n):
+    if n <= 0:
+        return False  # 0 and negative numbers cannot be perfect
     return n == sum(i for i in range(1, n) if n % i == 0)
 
 def is_armstrong(n):
-    digits = [int(d) for d in str(n)]
+    digits = [int(d) for d in str(abs(int(n)))]  # Handle negative numbers
     return n == sum(d**len(digits) for d in digits)
 
 def digit_sum(n):
-    return sum(int(d) for d in str(n))
+    return sum(int(d) for d in str(abs(int(n))))  # Handle negative numbers
 
 def get_fun_fact(n):
     try:
-        response = requests.get(f"http://numbersapi.com/{n}/math?json")
+        response = requests.get(f"http://numbersapi.com/{int(n)}/math?json")
+        response.raise_for_status()  # Raise an HTTPError for bad responses
         return response.json().get("text", "No fun fact available")
-    except:
-        return "No fun fact found, imagine that!"
+    except requests.exceptions.RequestException as e:
+        return f"No fun fact found, error: {e}"
 
 def create_error_response(message, status_code, number="alphabet", instruction=""):
     return jsonify({
@@ -62,15 +65,15 @@ def classify_number():
     if not number:
         return create_error_response(ERROR_INVALID_INPUT, 400, "alphabet", INSTRUCTION)
 
-    # Step 3: Try to convert the parameter to an integer
+    # Step 3: Try to convert the parameter to a float (to handle both integer and float values)
     try:
-        number = int(number)
+        number = float(number)
     except ValueError:
         return create_error_response(ERROR_INVALID_NUMBER, 400, "alphabet", INSTRUCTION)
 
     # Step 4: Additional validation for extreme values (optional, depending on project needs)
-    if number < 0 or number > 10**6:  # Arbitrary range validation
-        return create_error_response(ERROR_INVALID_RANGE, 400, "alphabet", "Number should be a positive integer within an acceptable range.")
+    if number < -10**6 or number > 10**6:  # Arbitrary range validation
+        return create_error_response(ERROR_INVALID_RANGE, 400, "alphabet", "Number should be a valid integer or float within an acceptable range.")
 
     # Step 5: Process the number
     properties = []
@@ -80,8 +83,8 @@ def classify_number():
 
     response = {
         "number": number,
-        "is_prime": is_prime(number),
-        "is_perfect": is_perfect(number),
+        "is_prime": is_prime(int(number)) if number.is_integer() else False,  # Only integers can be prime
+        "is_perfect": is_perfect(int(number)) if number.is_integer() else False,  # Only integers can be perfect
         "properties": properties,
         "digit_sum": digit_sum(number),
         "fun_fact": get_fun_fact(number),
