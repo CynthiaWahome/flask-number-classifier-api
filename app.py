@@ -2,9 +2,13 @@ from flask import Flask, request, jsonify
 import requests
 import os
 
-from dotenv import laod_dotenv
+from dotenv import load_dotenv
+from flask_cors import CORS
+
+load_dotenv()
 
 app = Flask(__name__)
+CORS(app)
 
 def is_prime(n):
     if n < 2:
@@ -31,13 +35,26 @@ def  get_fun_fact(n):
     except:
         return "No fun fact found imagine that!"
 
-@app.route('/api/classify-number', methods=['GET'])
-def classify_number():
-    number = request.args.get('number')
-    if not number or not number.isdigit():
-        return jsonify({"number":number, "error": True}), 400
+@app.route('/api/classify-number/<int:number>', methods=['GET'])
+def classify_number(number):
+    if not isinstance(number, int):
+        return jsonify({"number": number, "error": True}), 400
 
-    number = int(number)
+    properties = []
+    if is_armstrong(number):
+        properties.append("armstrong")
+    properties.append("odd" if number % 2 != 0 else "even")
+
+    response = {
+        "number": number,
+        "is_prime": is_prime(number),
+        "is_perfect": is_perfect(number),
+        "properties": properties,
+        "digit_sum": digit_sum(number),
+        "fun_fact": get_fun_fact(number)
+    }
+
+    return jsonify(response)
 
     properties = []
     if is_armstrong(number):
